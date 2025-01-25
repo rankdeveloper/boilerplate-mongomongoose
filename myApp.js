@@ -1,32 +1,112 @@
-require('dotenv').config();
+const mongoose = require("mongoose");
+require("dotenv").config();
+
+mongoose.connect(process.env.MONGO_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+  useCreateIndex: true,
+  useFindAndModify: false
+})
+  .then(() => console.log("MongoDB connected successfully!"))
+  .catch((err) => console.error("MongoDB connection error:", err));
+
+const personSchema = new mongoose.Schema({
+  name: {
+    type: String,
+    required: true,
+  },
+  age: {
+    type: Number,
+  },
+  favoriteFoods: [String],
+});
 
 
-let Person;
+let Person = mongoose.model('Person', personSchema)
 
 const createAndSavePerson = (done) => {
-  done(null /*, data*/);
-};
+  const newPerson = new Person({ name: "Freecodecamp", age: 22, favoriteFoods: ["Rajma", "Fish"] })
 
+  newPerson.save((err, data) => {
+    if (err) return console.error(err)
+    done(null, data);
+  })
+
+};
+const arrayOfPeople = [
+  { name: "Person1", age: 21, favoriteFoods: ["Rajma Chawal"] },
+  { name: "Person2", age: 22, favoriteFoods: ["roast chicken"] },
+  { name: "Person3", age: 21, favoriteFoods: ["Curi"] }
+];
 const createManyPeople = (arrayOfPeople, done) => {
-  done(null /*, data*/);
+  Person.create(arrayOfPeople)
+    .then((data) => {
+      done(null, data);
+      console.log("created new person , ", data)
+    })
+    .catch((err) => {
+      console.error(err)
+    })
+
+
 };
 
 const findPeopleByName = (personName, done) => {
-  done(null /*, data*/);
+
+  Person.find({ name: personName }, (err, data) => {
+    if (err) {
+
+      return done(err);
+    }
+
+    done(null, data);
+  });
 };
+
+
 
 const findOneByFood = (food, done) => {
-  done(null /*, data*/);
+
+  Person.findOne({ favoriteFoods: food }, (err, data) => {
+    if (err) {
+
+      return done(err);
+    }
+
+    done(null, data);
+  });
 };
+
+
 
 const findPersonById = (personId, done) => {
-  done(null /*, data*/);
+  console.log('Person ID:', personId);
+  console.log('Done Function:', done);
+  Person.findById(personId, (err, data) => {
+    if (err) {
+      return console.error('Error:', err);
+
+    }
+    console.log('Data Found:', data);
+    done(null, data);
+  });
 };
 
-const findEditThenSave = (personId, done) => {
-  const foodToAdd = "hamburger";
 
-  done(null /*, data*/);
+
+const findEditThenSave = (personId, done) => {
+  const foodToAdd = 'hamburger';
+
+  Person.findById(personId, (err, person) => {
+    if (err) return console.log(err);
+
+    person.favoriteFoods.push(foodToAdd);
+
+    person.save((err, updatedPerson) => {
+      if (err) return console.log(err);
+      done(null, updatedPerson)
+    })
+  })
 };
 
 const findAndUpdate = (personName, done) => {
